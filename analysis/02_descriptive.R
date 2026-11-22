@@ -129,6 +129,11 @@ stats_table <- series %>%
             iqr     = IQR(value, na.rm = TRUE),   # middle 50%: 3rd quartile - 1st quartile
             min     = min(value, na.rm = TRUE),
             max     = max(value, na.rm = TRUE))
+
+# the guidelines: report every mean with its 95% confidence interval.
+# CI of a mean (t distribution): mean +/- t * SD / sqrt(n), with t = qt(0.975, n - 1)
+stats_table$ci_low  <- stats_table$mean - qt(0.975, stats_table$n - 1) * stats_table$sd / sqrt(stats_table$n)
+stats_table$ci_high <- stats_table$mean + qt(0.975, stats_table$n - 1) * stats_table$sd / sqrt(stats_table$n)
 stats_table
 
 # from here on we only need the values that are not missing
@@ -261,15 +266,18 @@ print(xtable(counts_table, digits = c(0, 0, 0, 0, 1)),
 # so we turn the numbers into text: 2 decimals, but 1 for the Price Level row
 # (it is a price). sprintf("%.1f", x) writes x with 1 decimal, "%.2f" with 2.
 price_row <- grepl("Price Level", stats_table$row)
-for (col in c("mean", "sd", "median", "iqr", "min", "max")) {
+for (col in c("mean", "ci_low", "ci_high", "sd", "median", "iqr", "min", "max")) {
   stats_table[[col]] <- ifelse(price_row,
                                sprintf("%.1f", stats_table[[col]]),
                                sprintf("%.2f", stats_table[[col]]))
 }
+# the CI as one column of text, for example "[23.78, 32.20]"
+stats_table$ci <- paste0("[", stats_table$ci_low, ", ", stats_table$ci_high, "]")
+stats_table <- select(stats_table, row, n, missing, mean, ci, sd, median, iqr, min, max)
 
-names(stats_table) <- c("Variable (group)", "n", "Missing", "Mean", "SD",
+names(stats_table) <- c("Variable (group)", "n", "Missing", "Mean", "95% CI", "SD",
                         "Median", "IQR", "Min", "Max")
-print(xtable(stats_table, align = c("l", "P{3.6cm}", rep("r", 8))),
+print(xtable(stats_table, align = c("l", "P{3.6cm}", rep("r", 9))),
       file = file.path(dir_tab, "D_stats.tex"),
       floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)
 

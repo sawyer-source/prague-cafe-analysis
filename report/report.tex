@@ -44,7 +44,7 @@ The ten students of the course visited 20 caf\'es each in autumn 2026 and record
   \item Cleaned the district labels (typos like ``prauge 1'', capitals, spaces) and corrected five caf\'es whose district did not match their address: four Mal\'a Strana caf\'es from Prague~2 to Prague~1 and one Ko\v{s}\'i\v{r}e caf\'e from Prague~7 to Prague~5.
   \item Kept the first price when a cell listed several (18 caf\'es, for example ``85, 95, 105''), and set empty cells and ``na'' to missing, never to 0.
 \end{itemize}
-A small caf\'e has 15 or fewer seats inside, a top-rated caf\'e a Google rating of 4.7 or higher, and outdoor seating means at least one outdoor seat. The Price Level is the average of the espresso, cappuccino and flat white prices, for caf\'es with all three; above-median means above 79.7~CZK. Missing values: seats inside 1, seats outside 3, rating 3, Price Level 2. No variable was transformed. The median caf\'e has 22 seats inside and 6 outside, and the mean Price Level is 80.7~CZK (Appendix~\ref{app:desc}).
+A small caf\'e has 15 or fewer seats inside, a top-rated caf\'e a Google rating of 4.7 or higher, and outdoor seating means at least one outdoor seat. The Price Level is the average of the espresso, cappuccino and flat white prices, for caf\'es with all three; above-median means above 79.7~CZK. Missing values: seats inside 1, seats outside 3, rating 3, Price Level 2. No variable was transformed. The median caf\'e has 22 seats inside, 6 outside and a Price Level of 79.7~CZK (Appendix~\ref{app:desc}).
 
 \FloatBarrier
 \subsection{Statistical methods}
@@ -64,7 +64,7 @@ Table~\ref{tab:summary} summarises the ten analyses, which follow the story: how
 
 \FloatBarrier
 \subsection{A1: How many seats inside?}
-\Ho: the mean number of seats inside is 30; \Hone: it differs from 30 (two-tailed). The 188 caf\'es with a seat count (1 lost) have \meanci{27.99}{23.78}{32.20}{seats} and a median of 22 (IQR 17). The one-sample $t$-test finds no evidence of a difference from 30, \tstat{187}{$-$0.94}, \pval{.347} (Table~\ref{tab:a1}, Figure~\ref{fig:a1}). The median is lower than the mean because a few very big caf\'es, like VNITROBLOCK with 260 seats, pull the mean up.
+\Ho: the mean number of seats inside is 30; \Hone: it differs from 30 (two-tailed). The 188 caf\'es with a seat count (1 lost) have \meanci{27.99}{23.78}{32.20}{seats} and a median of 22 (IQR 17). The difference from 30 is tiny, Cohen's $d=-0.07$, and the one-sample $t$-test finds no evidence of a difference from 30, \tstat{187}{$-$0.94}, \pval{.347} (Table~\ref{tab:a1}, Figure~\ref{fig:a1}). The median is lower than the mean because a few very big caf\'es, like VNITROBLOCK with 260 seats, pull the mean up.
 
 \begin{table}[ht]
 \centering
@@ -82,11 +82,11 @@ Table~\ref{tab:summary} summarises the ten analyses, which follow the story: how
 
 \FloatBarrier
 \subsection{A2: Do caf\'es with outdoor seating have more seats inside?}
-\Ho: caf\'es with outdoor seating have the same number of seats inside as caf\'es without, or fewer; \Hone: they have more (one-tailed, fixed in advance). Caf\'es with outdoor seating ($n=124$) have 30.69 seats inside on average and caf\'es without ($n=62$) 23.06 (3 lost). The difference, with minus without, is 7.62~seats, \CI{$-$0.47}{15.72}, Cohen's $d=0.27$, and Welch's $t$-test supports \Hone, \tstat{159.48}{1.86}, one-tailed \pval{.032} (Table~\ref{tab:a2}, Figure~\ref{fig:a2}). Caf\'es with outdoor seating have about 7.6 more seats inside, a small effect, but the two-sided interval includes 0, so the size of the gap is uncertain.
+\Ho: caf\'es with outdoor seating have the same number of seats inside as caf\'es without, or fewer; \Hone: they have more (one-tailed, fixed in advance). For the 124 caf\'es with outdoor seating and the 62 without (3 lost), the difference in seats inside, with minus without, is 7.62~seats, \CI{$-$0.47}{15.72}, Cohen's $d=0.27$, and Welch's $t$-test supports \Hone, \tstat{159.48}{1.86}, one-tailed \pval{.032} (Table~\ref{tab:a2}, Figure~\ref{fig:a2}). Caf\'es with outdoor seating have about 7.6 more seats inside, a small effect, but the two-sided interval includes 0, so the size of the gap is uncertain.
 
 \begin{table}[ht]
 \centering
-\caption{A2: seats inside of caf\'es with and without outdoor seating. Difference = with minus without, with its two-sided 95\% confidence interval; $d$ = Cohen's $d$; the $p$-value is one-tailed. $n$ = caf\'es in each group, Lost = caf\'es with a missing value.}
+\caption{A2: seats inside of caf\'es with and without outdoor seating. Difference = with minus without, with its two-sided 95\% confidence interval; $d$ = Cohen's $d$; the $p$-value is one-tailed. $n$ = caf\'es with + without outdoor seating, Lost = caf\'es with a missing value. The group means with their confidence intervals are in Table~\ref{tab:desc}.}
 \label{tab:a2}
 \fittable{tables/A2_table.tex}
 \end{table}
@@ -100,7 +100,7 @@ Table~\ref{tab:summary} summarises the ten analyses, which follow the story: how
 
 \FloatBarrier
 \subsection{A3: How many more seats inside than outside?}
-\Ho: the mean difference, inside minus outside, is 0 or less; \Hone: it is greater than 0 (one-tailed). The 186 caf\'es with both counts (3 lost) have 28.15 seats inside and 10.78 outside on average. The paired difference is 17.36~seats, \CI{13.39}{21.33}, $d_z=0.63$, and the paired $t$-test supports \Hone, \tstat{185}{8.63}, one-tailed \plt{.001} (Table~\ref{tab:a3}, Figure~\ref{fig:a3}). That is more than half of a caf\'e's average indoor seating, so the gap clearly matters in practice.
+\Ho: the mean difference, inside minus outside, is 0 or less; \Hone: it is greater than 0 (one-tailed). For the 186 caf\'es with both counts (3 lost), the mean difference is 17.36~seats, \CI{13.39}{21.33}, $d_z=0.63$, and the paired $t$-test supports \Hone, \tstat{185}{8.63}, one-tailed \plt{.001} (Table~\ref{tab:a3}, Figure~\ref{fig:a3}). That is more than half of a caf\'e's average indoor seating, so the gap clearly matters in practice.
 
 \begin{table}[ht]
 \centering
@@ -193,7 +193,7 @@ Table~\ref{tab:summary} summarises the ten analyses, which follow the story: how
 
 \FloatBarrier
 \subsection{A8: Does the link hold once distance from the Orloj is included?}
-\Ho: with the distance from the Orloj held fixed, the slope of the seats is 0; \Hone: it is not 0 (two-tailed). Adding the distance to the A7 model (same 186 caf\'es) lowers the seats slope from 0.66 to 0.58~CZK per 10 seats, \CI{$-$0.03}{1.20}, \tstat{183}{1.87}, \pval{.063}, so there is no longer evidence that it differs from zero (Table~\ref{tab:a8}, Figure~\ref{fig:a8}). Each km farther from the Orloj goes with a Price Level 1.48~CZK lower, \CI{$-$2.85}{$-$0.12}, \pval{.033}, and the distance improves the model, \Fstat{1}{183}{4.61}, \pval{.033}, $R^2=.05$. Most of the seats slope remains, but once location is included the data no longer show that size by itself goes with price.
+\Ho: with the distance from the Orloj held fixed, the slope of the seats is 0; \Hone: it is not 0 (two-tailed). Adding the distance to the A7 model (same 186 caf\'es, 3 lost) lowers the seats slope from 0.66 to 0.58~CZK per 10 seats, \CI{$-$0.03}{1.20}, \tstat{183}{1.87}, \pval{.063}, so there is no longer evidence that it differs from zero (Table~\ref{tab:a8}, Figure~\ref{fig:a8}). Each km farther from the Orloj goes with a Price Level 1.48~CZK lower, \CI{$-$2.85}{$-$0.12}, \pval{.033}, and the distance improves the model, \Fstat{1}{183}{4.61}, \pval{.033}, $R^2=.05$. Most of the seats slope remains, but once location is included the data no longer show that size by itself goes with price.
 
 \begin{table}[ht]
 \centering
@@ -270,7 +270,7 @@ Table~\ref{tab:counts} gives the counts and percentages of the categorical varia
 
 \begin{table}[ht]
 \centering
-\caption{Numeric variables, overall and within the compared groups: number of caf\'es, missing values, mean, standard deviation, median, interquartile range and range. Seats in number of seats, Price Level in CZK, distance in km.}
+\caption{Numeric variables, overall and within the compared groups: number of caf\'es, missing values, mean with its 95\% confidence interval ($t$ distribution), standard deviation, median, interquartile range and range. Seats in number of seats, Price Level in CZK, distance in km.}
 \label{tab:desc}
 \fittable{tables/D_stats.tex}
 \end{table}

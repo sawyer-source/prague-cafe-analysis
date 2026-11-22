@@ -192,7 +192,6 @@ a2_d    <- a2_diff / sqrt((sd(with_seats)^2 + sd(without_seats)^2) / 2)
 
 a2_table <- data.frame(
   n = paste(length(with_seats), "+", length(without_seats)), Lost = a2_lost,
-  `Mean with` = fmt(mean(with_seats)), `Mean without` = fmt(mean(without_seats)),
   Difference = fmt(a2_diff),                         # with - without
   `95% CI` = fmt_ci(a2_ci[1], a2_ci[2]),               # two-sided
   d = fmt(a2_d),
@@ -247,7 +246,6 @@ a3_dz <- mean(a3$difference) / sd(a3$difference)
 
 a3_table <- data.frame(
   n = nrow(a3), Lost = a3_lost,
-  `Mean inside` = fmt(mean(a3$seats_inside)), `Mean outside` = fmt(mean(a3$seats_outside)),
   Difference = fmt(mean(a3$difference)),             # inside - outside
   `95% CI` = fmt_ci(a3_ci[1], a3_ci[2]),               # two-sided
   `d_z` = fmt(a3_dz),
