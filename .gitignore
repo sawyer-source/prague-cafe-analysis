@@ -18,3 +18,6 @@
 
 # macOS
 .DS_Store
+
+# plots R saves when a script is run from the command line
+Rplots.pdf

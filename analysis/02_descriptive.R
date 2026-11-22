@@ -250,20 +250,21 @@ d_table
 # 8. EXPORT THE TABLES TO LATEX
 # ============================================================
 # floating = FALSE: only the table itself; the caption is added in the
-# report's .tex file around it. booktabs = TRUE: clean horizontal rules
+# report's .tex file around it. booktabs = TRUE: clean horizontal rules.
+# comment = FALSE: no timestamp line, so every run gives the same file
 names(counts_table) <- c("Variable", "Value", "n", "%")
 print(xtable(counts_table, digits = c(0, 0, 0, 0, 1)),
       file = file.path(dir_tab, "D_counts.tex"),
-      floating = FALSE, booktabs = TRUE, include.rownames = FALSE)
+      floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)
 
 names(stats_table) <- c("Variable (group)", "n", "Missing", "Mean", "SD",
                         "Median", "IQR", "Min", "Max")
 print(xtable(stats_table, digits = 2),
       file = file.path(dir_tab, "D_stats.tex"),
-      floating = FALSE, booktabs = TRUE, include.rownames = FALSE)
+      floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)
 
 names(d_table) <- c("Variable (group)", "Used in", "n", "Skewness",
                     "Skewness of boot. means", "Normal", "CLT applies", "Conclusion")
 print(xtable(d_table, digits = 2),
       file = file.path(dir_tab, "D_table.tex"),
-      floating = FALSE, booktabs = TRUE, include.rownames = FALSE)
+      floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)

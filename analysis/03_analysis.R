@@ -64,7 +64,8 @@ fmt_r <- function(x) sub("^(-?)0\\.", "\\1.", fmt(x, 2))
 # write a data frame as a LaTeX table (the caption is added in report.tex)
 export_table <- function(table, file) {
   print(xtable(table), file = file.path(dir_tab, file),
-        floating = FALSE, booktabs = TRUE, include.rownames = FALSE)
+        floating = FALSE, booktabs = TRUE, include.rownames = FALSE,
+        comment = FALSE)   # no timestamp line, so every run gives the same file
 }
 
 # bootstrapped 95% percentile CI of the median (07_bootstrapping.R idea)
@@ -133,9 +134,12 @@ a1_table <- data.frame(
 a1_table
 export_table(a1_table, "A1_table.tex")
 
-# figure: every cafe as a dot, the mean with its 95% CI, and 30 as a dashed line
+# figure: every cafe as a dot, the mean with its 95% CI, and 30 as a dashed line.
+# position_jitter() spreads the dots sideways so they don't hide each other:
+# height = 0 keeps every dot at its true number of seats, seed = 123 makes
+# the spread the same on every run
 a1_plot <- ggplot(a1, aes(x = "", y = seats_inside)) +
-  geom_jitter(width = 0.15, alpha = 0.3) +
+  geom_point(position = position_jitter(width = 0.15, height = 0, seed = 123), alpha = 0.3) +
   geom_errorbar(aes(ymin = a1_test$conf.int[1], ymax = a1_test$conf.int[2]),
                 width = 0.1, linewidth = 1, color = "#2a78d6") +
   geom_point(aes(y = a1_test$estimate), size = 3, color = "#2a78d6") +
@@ -204,7 +208,7 @@ a2_means <- a2 %>%
             upper = t.test(seats_inside)$conf.int[2])
 
 a2_plot <- ggplot(a2, aes(x = outdoor, y = seats_inside)) +
-  geom_jitter(width = 0.15, alpha = 0.3) +
+  geom_point(position = position_jitter(width = 0.15, height = 0, seed = 123), alpha = 0.3) +
   geom_errorbar(data = a2_means, aes(y = m, ymin = lower, ymax = upper),
                 width = 0.1, linewidth = 1, color = "#2a78d6") +
   geom_point(data = a2_means, aes(y = m), size = 3, color = "#2a78d6") +
@@ -253,7 +257,7 @@ export_table(a3_table, "A3_table.tex")
 
 # figure: the guidelines ask to plot the DIFFERENCES for a paired comparison
 a3_plot <- ggplot(a3, aes(x = "", y = difference)) +
-  geom_jitter(width = 0.15, alpha = 0.3) +
+  geom_point(position = position_jitter(width = 0.15, height = 0, seed = 123), alpha = 0.3) +
   geom_errorbar(aes(ymin = a3_ci[1], ymax = a3_ci[2]),
                 width = 0.1, linewidth = 1, color = "#2a78d6") +
   geom_point(aes(y = mean(difference)), size = 3, color = "#2a78d6") +
@@ -343,7 +347,7 @@ export_table(a4_posthoc, "A4_posthoc.tex")
 
 # figure: every cafe as a dot, and each district's median with its bootstrapped CI
 a4_plot <- ggplot(a4, aes(x = district, y = seats_outside)) +
-  geom_jitter(width = 0.15, alpha = 0.3) +
+  geom_point(position = position_jitter(width = 0.15, height = 0, seed = 123), alpha = 0.3) +
   geom_errorbar(data = a4_groups, aes(y = median, ymin = lower, ymax = upper),
                 width = 0.15, linewidth = 1, color = "#2a78d6") +
   geom_point(data = a4_groups, aes(y = median), size = 3, color = "#2a78d6") +
@@ -731,8 +735,8 @@ export_table(a10_table, "A10_table.tex")
 # figure: the predicted probability by seats (with its 95% band), over the
 # 0/1 data (jittered up and down a little so the dots don't overlap)
 a10_plot <- plot_predictions(a10_model, condition = "seats_inside") +
-  geom_jitter(data = a10, aes(x = seats_inside, y = above_median_price),
-              inherit.aes = FALSE, width = 0, height = 0.03, alpha = 0.3) +
+  geom_point(data = a10, aes(x = seats_inside, y = above_median_price), inherit.aes = FALSE,
+             position = position_jitter(width = 0, height = 0.03, seed = 123), alpha = 0.3) +
   labs(x = "Seats inside (number of seats)",
        y = "Probability of an above-median Price Level") +
   theme_minimal()
