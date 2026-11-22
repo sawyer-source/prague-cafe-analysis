@@ -1,148 +1,363 @@
 %% =====================================================================
-%%  Prague Cafe Project -- student report template
-%%  Fill in the text, delete every comment that starts with "HINT".
-%%  Tables and figures are produced by YOUR R script and loaded here.
-%%  Put cafestyle.sty in the same folder as this file.
+%%  Prague Cafe Project -- report, topic: Cafe Size
+%%  Tables and figures are produced by the R scripts in ../analysis
+%%  and loaded here; captions are written here, not in R.
 %% =====================================================================
 \documentclass[11pt,a4paper]{article}
 \usepackage{cafestyle}
+\usepackage{adjustbox}
+\usepackage{array}
+\usepackage{placeins}   % \FloatBarrier keeps each table and figure in its own section
+% P{width}: a table column whose text wraps and is left-aligned (used by the R tables)
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 % Include an R-exported file if it exists, otherwise show a visible placeholder
-% (so that the template compiles before your script has produced anything).
 \newcommand{\inputtable}[1]{\IfFileExists{#1}{\input{#1}}{\par\noindent\fbox{\parbox{0.9\linewidth}{\centering Missing table file: \texttt{\detokenize{#1}}}}\par}}
+% a table at small size, scaled down only if it is still wider than the page
+\newcommand{\fittable}[1]{\small\begin{adjustbox}{max width=\linewidth}\inputtable{#1}\end{adjustbox}}
 \newcommand{\inputfigure}[2][0.85]{\IfFileExists{#2}{\includegraphics[width=#1\linewidth]{#2}}{\fbox{\parbox{0.8\linewidth}{\centering Missing figure file: \texttt{\detokenize{#2}}}}}}
 
-\title{\textbf{Title of your report: what you asked and what you found}}
-\author{Your Name\\[0.3ex]\small Data Analytics, Batch \textit{N}\\[0.3ex]\small Partner: Name of the other student in your batch}
+\title{\textbf{Small caf\'es are rated higher, big caf\'es barely charge more: caf\'e size in Prague}}
+\author{Sawyer Gatdula\\[0.3ex]\small Data Analytics, topic: Caf\'e Size\\[0.3ex]\small Partner: \textbf{[PARTNER NAME]}}
 \date{\today}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\noindent HINT (about 100 words): the outcome variable, the sample (how many caf\'es), the analyses you cover, and the two or three main results with their effect sizes in the original units. No new information that is not in the text below.
+\noindent This report asks how big Prague caf\'es are and whether their size goes together with where they are, how well they are rated and what they charge. The data are 189 caf\'es visited by students of the course. Caf\'es have 28 seats inside on average (median 22), with no evidence of a difference from 30, and about 17 more seats inside than outside. Prague~5 has fewer outdoor seats than Prague~1 and Prague~7. Small caf\'es (15 or fewer seats inside) are top-rated 28.6 percentage points more often than other caf\'es. Size and price are only weakly linked: 0.66~CZK more per 10 seats, a link that is no longer significant once the distance from the Orloj is taken into account, and that exists only in caf\'es without outdoor seating.
 \end{abstract}
 
+\FloatBarrier
 \section{Introduction}
-HINT: two or three sentences on why the price (or rating, or popularity) of a caf\'e might depend on the variables of your batch. State the research questions in plain words. Do not describe the methods here.
+The size of a caf\'e shapes the experience it offers: a small caf\'e can be personal and quiet, a big one can host groups and tourists. Size may also go together with location, with ratings and with prices, for example if big caf\'es sit in expensive, touristy places. This report is the Caf\'e Size chapter of the class study of the Prague caf\'e market. It asks how many seats caf\'es have inside and outside, whether outdoor seating differs between districts, whether small caf\'es are rated better, and whether bigger caf\'es charge more, also once their distance from the city centre and their outdoor seating are taken into account.
 
+\FloatBarrier
 \section{Data and methods}
 
+\FloatBarrier
 \subsection{Data}
-HINT: where the data come from, the number of caf\'es in the raw file and in the analysis dataset, every cleaning step your cleaning script applies (empty rows dropped, district labels harmonised, thousands separator removed, blank type set to missing, rule for cells with several prices) with the number of caf\'es affected, and the number of missing values in each variable you use. Say which variables were log-transformed and why. Keep this part short: the full descriptive statistics (Table~\ref{tab:desc}) and the distribution checks are in Appendices~\ref{app:desc} and~\ref{app:dist}, and the main text only mentions what a reader needs in order to follow the results.
+The data were collected in person by the ten students of the course in autumn 2026: each student visited 20 caf\'es and recorded seats, prices, the Google rating and the location in a shared sheet. The raw file has 299 rows. The cleaning script (\texttt{01\_cleaning.R}) made these choices:
+\begin{itemize}
+  \item 99 empty rows at the bottom of the sheet were removed, which left 200 caf\'es.
+  \item 11 caf\'es had been entered twice by different students (same address and almost the same number of Google ratings). The first entry of each was kept, which left 189 unique caf\'es. Caf\'es with the same name but a different address, such as three branches of EMA Espresso Bar, were kept.
+  \item District labels were harmonised (typos such as ``prauge 1'', capitals and spaces). Five caf\'es whose district contradicted their own address were corrected: four Mal\'a Strana caf\'es from Prague~2 to Prague~1 and one Ko\v{s}\'i\v{r}e caf\'e from Prague~7 to Prague~5.
+  \item 18 caf\'es listed several prices in one cell (for example ``85, 95, 105''); the first listed price was kept. Empty cells and ``na'' were set to missing, never to 0.
+\end{itemize}
+The variables used are the seats inside and outside, outdoor seating (at least one outdoor seat), small caf\'e (15 or fewer seats inside), top-rated (Google rating of 4.7 or higher), the Price Level (the average of the espresso, cappuccino and flat white prices, computed only for caf\'es with all three), an above-median Price Level (above 79.67~CZK) and the distance from the Orloj. Missing values: seats inside 1, seats outside 3, rating 3, Price Level 2. No variable was transformed. The full descriptive statistics are in Appendix~\ref{app:desc}: a typical caf\'e has a median of 22 seats inside and 6 outside, and a mean Price Level of 80.70~CZK.
 
+\FloatBarrier
 \subsection{Statistical methods}
-HINT: one short paragraph. State $\alpha=.05$, the tests you used for each question, why you chose them (look at the plot, the sample size and the shape of the distribution), how confidence intervals were computed (including the bootstrap settings and the seed), which adjustment was applied to multiple comparisons, and the software with version numbers.
+All tests use $\alpha=.05$. Before any test, the descriptive script (\texttt{02\_descriptive.R}) checked every variable, within every compared group, with a histogram, a Q--Q plot and its skewness (Appendix~\ref{app:dist}). A variable counted as normal if its skewness was between $-0.5$ and $0.5$; if not, the central limit theorem was taken to apply if the group had at least 30 caf\'es and the means of 5{,}000 bootstrap resamples (seed 123) had a skewness between $-0.5$ and $0.5$. No variable was normal on its own, but all were rescued by the central limit theorem except the outdoor seats of Prague~2, 3 and 5, which have fewer than 30 caf\'es (Table~\ref{tab:dtable}). Therefore A1--A3 use $t$-tests (Welch's test for A2), A4 uses the Kruskal--Wallis test with Dunn's post hoc test and Holm's correction, and A6 uses Pearson's $r$. A5 uses the chi-square test, or Fisher's exact test if an expected count were below 5. A7--A9 are linear regressions; their residuals were checked after fitting, and robust (HC3) standard errors were planned for any model whose Breusch--Pagan test showed unequal variance (none did). A10 is a logistic regression reported as an average marginal effect. Confidence intervals of means come from the $t$ distribution, those of medians from a percentile bootstrap (5{,}000 resamples, seed 123). The direction of every one-tailed test was fixed before looking at the data. The analysis was done in R 4.3.3 with dplyr 1.1.4, ggplot2 3.4.4, xtable 1.8-4, rstatix 0.7.2, lmtest 0.9-40, sandwich 3.1-0, emmeans 1.10.0 and marginaleffects 0.18.0.
 
+\FloatBarrier
 \section{Results}
 
-HINT: the main text carries only the main results; checks, diagnostics and robustness analyses go to the appendices and are cited from here. Start with one captioned summary table of the main results of all ten analyses (\verb|tables/summary.tex|), then load each analysis' table and figure by its name, each inside a table or figure environment with a \verb|\caption| and a \verb|\label| (for example \verb|tables/A2_table.tex| and \verb|figures/A2_figure.pdf|). One subsection per analysis. In each, in this order: the question and the hypotheses with the direction fixed in advance; the plot; the estimate with its confidence interval; the effect size with its confidence interval; the test statistic with degrees of freedom and the exact $p$-value; one sentence of interpretation in the units of the data. Use the macros from the style file so that the format is identical everywhere, for example:
-
-\begin{quote}\small
-\verb|\meanci{XX.X}{XX.X}{XX.X}{CZK}| gives \meanci{XX.X}{XX.X}{XX.X}{CZK}\\
-\verb|\diffci{X.X}{X.X}{X.X}{CZK}{0.XX}{0.XX}{0.XX}| gives \diffci{X.X}{X.X}{X.X}{CZK}{0.XX}{0.XX}{0.XX}\\
-\verb|\tstat{XX.X}{X.XX}, \pval{.XXX}| gives \tstat{XX.X}{X.XX}, \pval{.XXX}\\
-\verb|\Fstat{X}{XX.X}{X.XX}| gives \Fstat{X}{XX.X}{X.XX}
-\end{quote}
-
-\subsection{A1: One-sample test}
-Question, hypotheses, plot, estimate, interpretation. Remember that the benchmark was fixed before looking at the data.
-
-\subsection{A2: Two groups}
-State the direction of the subtraction in words. Report the mean difference with its confidence interval and Cohen's $d$ with its confidence interval.
-
-\subsection{A3: Paired comparison}
-Report the mean of the within-caf\'e differences, its confidence interval and $d_z$. Show the differences in a plot.
-
-\subsection{A4: Three or more groups}
-Report the omnibus test, $\eta^2$, and the post hoc comparisons with adjusted $p$-values and confidence intervals. Show group means with confidence intervals in Figure~\ref{fig:groups}.
-
-\begin{figure}[ht]
-\centering
-\inputfigure{figures/A4_figure.pdf}
-\caption{Self-contained caption: what is on the axes (with units), what the points and bars show, what the error bars are (95\% confidence intervals), and the sample sizes.}
-\label{fig:groups}
-\end{figure}
-
-\subsection{A5: Association of two categorical variables}
-Report the counts and percentages, the test with $N$, the smallest expected count, Cram\'er's $V$ with its interval, and the cells with the largest standardised residuals.
-
-\subsection{A6: Correlation}
-Report $r$ with its confidence interval, $n$, and the rank-based coefficients next to it. Say nothing about causes.
-
-\subsection{A7: Simple regression}
-Report the slope in the units of the outcome per unit of the predictor, its robust confidence interval, $R^2$ and what the residual plots show.
-
-\subsection{A8: Multiple regression}
-Report both models side by side in Table~\ref{tab:reg}, the nested $F$-test and the change in the slope of interest. Mention the variance inflation factors.
+Table~\ref{tab:summary} summarises the ten analyses. They are reported below in the order of the story: how big caf\'es are (A1--A3), where outdoor seating is (A4), how size relates to ratings (A5) and how it relates to prices (A6--A10).
 
 \begin{table}[ht]
 \centering
-\caption{Regression estimates with robust standard errors in parentheses and 95\% confidence intervals. The outcome is stated in the table note.}
-\label{tab:reg}
-\inputtable{tables/A8_table.tex}
+\caption{Main results of the ten analyses. Estimates with 95\% confidence intervals; $p$-values of A2, A3 and A5 are one-tailed and the direction was fixed in advance. pp = percentage points.}
+\label{tab:summary}
+\fittable{tables/summary.tex}
 \end{table}
 
-\subsection{A9: Interaction}
-Report the interaction coefficient with its confidence interval, the nested $F$-test, the slope of interest in each group with its interval, and show the fitted lines by group over the data.
+\FloatBarrier
+\subsection{A1: How many seats inside?}
+\Ho: the mean number of seats inside is 30. \Hone: it is different from 30 (two-tailed). The 188 caf\'es with a seat count (1 missing) have \meanci{27.99}{23.78}{32.20}{seats}, a median of 22 and an interquartile range of 17 (Table~\ref{tab:a1}, Figure~\ref{fig:a1}). The difference from 30 is tiny, Cohen's $d=-0.07$, and the one-sample $t$-test finds no evidence that the mean differs from 30, \tstat{187}{$-$0.94}, \pval{.347}. In this sample a caf\'e has around 28 seats inside on average; the median of 22 is lower because a few very big caf\'es, such as VNITROBLOCK with 260 seats, pull the mean up.
 
-\subsection{A10: Logistic regression}
-State how the binary outcome was created (the median and its value, or the definition of the indicator). Report the average marginal effect of distance in percentage points with its 95\% confidence interval as the headline, the odds ratio only as a check, the number of observations and events, and show a predicted-probability plot.
+\begin{table}[ht]
+\centering
+\caption{A1: seats inside compared with 30. $n$ = caf\'es used, Lost = caf\'es with a missing value.}
+\label{tab:a1}
+\fittable{tables/A1_table.tex}
+\end{table}
 
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A1_figure.pdf}
+\caption{A1: seats inside of each caf\'e (grey dots, $n=188$), the mean (blue point) with its 95\% confidence interval (blue bar) and the tested value of 30 seats (dashed red line).}
+\label{fig:a1}
+\end{figure}
+
+\FloatBarrier
+\subsection{A2: Do caf\'es with outdoor seating have more seats inside?}
+\Ho: caf\'es with outdoor seating have the same or fewer seats inside than caf\'es without. \Hone: they have more (one-tailed, fixed in advance because the question asks about ``more''). The difference is computed as caf\'es with outdoor seating minus caf\'es without. The 124 caf\'es with outdoor seating have 30.69 seats inside on average and the 62 without have 23.06 (3 caf\'es lost to missing values). The difference is 7.62~seats, \CI{$-$0.47}{15.72}, with Cohen's $d=0.27$ (Table~\ref{tab:a2}, Figure~\ref{fig:a2}). Levene's test found no difference in variances, $F(1,184)=0.17$, \pval{.680}, and Welch's test was used, which does not need equal variances. Welch's $t$-test finds support for \Hone, \tstat{159.48}{1.86}, one-tailed \pval{.032}. Caf\'es with outdoor seating have about 7.6 more seats inside, a small effect ($d=0.27$). The two-sided interval still includes 0, so the size of the difference is uncertain.
+
+\begin{table}[ht]
+\centering
+\caption{A2: seats inside of caf\'es with and without outdoor seating. Difference = with minus without, with its two-sided 95\% confidence interval; $d$ = Cohen's $d$; the $p$-value is one-tailed. $n$ = caf\'es in each group, Lost = caf\'es with a missing value.}
+\label{tab:a2}
+\fittable{tables/A2_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A2_figure.pdf}
+\caption{A2: seats inside of caf\'es with outdoor seating ($n=124$) and without ($n=62$). Grey dots are caf\'es; blue points and bars are the group means with 95\% confidence intervals.}
+\label{fig:a2}
+\end{figure}
+
+\FloatBarrier
+\subsection{A3: How many more seats inside than outside?}
+\Ho: the mean difference inside minus outside is 0 or less. \Hone: it is greater than 0 (one-tailed). The comparison is paired: both counts come from the same caf\'e. The 186 caf\'es with both counts (3 lost) have 28.15 seats inside and 10.78 outside on average. The mean difference inside minus outside is 17.36~seats, \CI{13.39}{21.33}, with $d_z=0.63$ (Table~\ref{tab:a3}, Figure~\ref{fig:a3}). The paired $t$-test finds support for \Hone, \tstat{185}{8.63}, one-tailed \plt{.001}. In this sample a caf\'e has about 17 more seats inside than outside, which is more than half of its average indoor capacity, so the difference is clearly relevant in practice.
+
+\begin{table}[ht]
+\centering
+\caption{A3: seats inside and outside of the same caf\'es. Difference = mean of inside minus outside, with its two-sided 95\% confidence interval; $d_z$ = mean difference divided by the SD of the differences; the $p$-value is one-tailed.}
+\label{tab:a3}
+\fittable{tables/A3_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A3_figure.pdf}
+\caption{A3: the difference seats inside minus seats outside of each caf\'e (grey dots, $n=186$), the mean difference (blue point) with its 95\% confidence interval (blue bar), and no difference (dashed red line at 0).}
+\label{fig:a3}
+\end{figure}
+
+\FloatBarrier
+\subsection{A4: Do outdoor seats differ between districts?}
+\Ho: the number of outdoor seats is the same in Prague~1, 2, 3, 5, 7 and 8. \Hone: at least one district differs. Prague~2, 3 and 5 have fewer than 30 caf\'es and their counts are skewed, so the rank-based Kruskal--Wallis test was used. The 176 caf\'es in these districts with an outdoor count (3 lost) give $H(5)=12.51$, \pval{.028}: the districts differ (Table~\ref{tab:a4}, Figure~\ref{fig:a4}). Dunn's post hoc test with Holm's correction (Appendix~\ref{app:checks}, Table~\ref{tab:a4posthoc}) shows that Prague~5, with a median of 0 outdoor seats, has fewer outdoor seats than Prague~1 (difference in medians $-$8 seats, \CI{$-$12.00}{$-$3.00}, Holm \pval{.014}) and Prague~7 (9 seats, \CI{0.00}{17.50}, Holm \pval{.044}). No other pair differs after the correction. With a median of 0, at least half of the caf\'es visited in Prague~5 have no outdoor seating at all.
+
+\begin{table}[ht]
+\centering
+\caption{A4: outdoor seats by district, medians with bootstrapped 95\% confidence intervals (5{,}000 resamples, seed 123), and the Kruskal--Wallis test.}
+\label{tab:a4}
+\fittable{tables/A4_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.8]{figures/A4_figure.pdf}
+\caption{A4: outdoor seats of each caf\'e by district (grey dots, $n=176$). Blue points and bars are the district medians with bootstrapped 95\% confidence intervals.}
+\label{fig:a4}
+\end{figure}
+
+\FloatBarrier
+\subsection{A5: Are small caf\'es more likely to be top-rated?}
+\Ho: small caf\'es (15 or fewer seats inside) are top-rated (Google rating 4.7 or higher) no more often than other caf\'es. \Hone: they are top-rated more often (one-tailed). The difference is small caf\'es minus other caf\'es. Of the 186 caf\'es with both values (3 lost), 30 of 52 small caf\'es (57.7\%) and 39 of 134 other caf\'es (29.1\%) are top-rated, a difference of 28.6 percentage points, \CI{13.1}{44.1} (Table~\ref{tab:a5}, Figure~\ref{fig:a5}). The smallest expected count is 19.29, above 5, so the chi-square test is appropriate: \chisqstat{1}{186}{13.12}, one-tailed \plt{.001}, Cram\'er's $V=.27$. The standardised residuals ($\pm$3.62) show that small caf\'es have more top ratings than expected under independence. In this sample a small caf\'e is about twice as likely to be top-rated, which is a large and practically relevant difference.
+
+\begin{table}[ht]
+\centering
+\caption{A5: top-rated caf\'es (Google rating 4.7 or higher) among small caf\'es (15 or fewer seats inside) and other caf\'es. Top: counts, row percentages and standardised residuals. Bottom: the difference small minus other in percentage points (pp) with its two-sided 95\% confidence interval, Cram\'er's $V$, the smallest expected count and the chi-square test with its one-tailed $p$-value.}
+\label{tab:a5}
+\fittable{tables/A5_table.tex}
+
+\medskip
+\fittable{tables/A5_test.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A5_figure.pdf}
+\caption{A5: share of top-rated caf\'es among small caf\'es ($n=52$) and other caf\'es ($n=134$), with 95\% confidence intervals and the counts.}
+\label{fig:a5}
+\end{figure}
+
+\FloatBarrier
+\subsection{A6: Is the Price Level correlated with the seats inside?}
+\Ho: there is no correlation between the Price Level and the seats inside. \Hone: there is a correlation (two-tailed). Both variables passed the central limit theorem check, so Pearson's $r$ is used. For the 186 caf\'es with both values (3 lost), $r=.15$, \CI{.01}{.29}, and $r^2=.02$ (Table~\ref{tab:a6}, Figure~\ref{fig:a6}); \tstat{184}{2.11}, \pval{.037}. Bigger caf\'es tend to be slightly more expensive, but the link is weak: the seats share only about 2\% of their variation with the Price Level. A correlation does not show that size causes higher prices.
+
+\begin{table}[ht]
+\centering
+\caption{A6: Pearson correlation between the seats inside and the Price Level.}
+\label{tab:a6}
+\fittable{tables/A6_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A6_figure.pdf}
+\caption{A6: Price Level (CZK) against seats inside for 186 caf\'es, with Pearson's $r$ and its 95\% confidence interval.}
+\label{fig:a6}
+\end{figure}
+
+\FloatBarrier
+\subsection{A7: By how many CZK does the Price Level change per 10 seats?}
+\Ho: the slope of the Price Level on the seats inside is 0. \Hone: it is not 0 (two-tailed). The seats were divided by 10, so the slope is in CZK per 10 seats. For 186 caf\'es (3 lost), the Price Level rises by 0.66~CZK per 10 seats inside, \CI{0.04}{1.27}, \tstat{184}{2.11}, \pval{.037}, $R^2=.02$ (Table~\ref{tab:a7}, Figure~\ref{fig:a7}). The Breusch--Pagan test found no unequal variance (\pval{.186}), so classic standard errors are reported. The diagnostics (Appendix~\ref{app:diag}) flag 11 influential caf\'es (Cook's distance above $4/n$), above all VNITROBLOCK (260 seats), Caf\'e Louvre (200 seats), Starbucks Reserve and Caf\'e Slavia. Without them the slope rises to 1.92~CZK per 10 seats, so the positive link does not depend on them. In practice the effect is very small: 10 extra seats go with less than 1~CZK on a Price Level of about 80~CZK.
+
+\begin{table}[ht]
+\centering
+\caption{A7: linear regression of the Price Level (CZK) on the seats inside (per 10 seats), classic standard errors.}
+\label{tab:a7}
+\fittable{tables/A7_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A7_figure.pdf}
+\caption{A7: Price Level (CZK) against seats inside for 186 caf\'es, with the fitted regression line and its 95\% confidence band.}
+\label{fig:a7}
+\end{figure}
+
+\FloatBarrier
+\subsection{A8: Does the link hold once distance from the Orloj is included?}
+\Ho: with the distance from the Orloj held fixed, the slope of the seats is 0. \Hone: it is not 0 (two-tailed). The model of A7 was refitted on the same 186 caf\'es with the distance added (Table~\ref{tab:a8}, Figure~\ref{fig:a8}). The slope of the seats fell from 0.66 to 0.58~CZK per 10 seats, \CI{$-$0.03}{1.20}, \tstat{183}{1.87}, \pval{.063}, and is no longer different from zero. The distance itself matters: every km farther from the Orloj goes with a Price Level 1.48~CZK lower, \CI{$-$2.85}{$-$0.12}, \pval{.033}, and adding it improves the model, \Fstat{1}{183}{4.61}, \pval{.033}, $R^2=.05$. The two predictors barely overlap (VIF = 1.01), and the Breusch--Pagan test found no unequal variance (\pval{.152}). Most of the seats slope remains, but once location is taken into account, the data no longer give evidence that size alone goes with price.
+
+\begin{table}[ht]
+\centering
+\caption{A8: the model of A7 and the model with the distance from the Orloj, on the same 186 caf\'es; the $F$-test compares the two models.}
+\label{tab:a8}
+\fittable{tables/A8_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A8_figure.pdf}
+\caption{A8: Price Level (CZK) against seats inside (grey dots, $n=186$), with the fitted line of A7 (seats only) and of A8 (seats and distance, drawn at the median distance), each with its 95\% confidence band.}
+\label{fig:a8}
+\end{figure}
+
+\FloatBarrier
+\subsection{A9: Does the link differ with and without outdoor seating?}
+\Ho: the slope of the Price Level on the seats is the same for caf\'es with and without outdoor seating. \Hone: the slopes differ (two-tailed). For 184 caf\'es (5 lost), the interaction is $-$2.67~CZK, \CI{$-$4.17}{$-$1.18}, and adding it improves the model, \Fstat{1}{180}{12.44}, \plt{.001}, $R^2=.09$ (Table~\ref{tab:a9}, Figure~\ref{fig:a9}). Without outdoor seating, the Price Level rises by 2.74~CZK per 10 seats, \CI{1.41}{4.07}, \plt{.001}; with outdoor seating the slope is 0.07~CZK, \CI{$-$0.62}{0.75}, \pval{.845}. The Breusch--Pagan test found no unequal variance (\pval{.843}); the most influential caf\'es are Caf\'e Slavia and Starbucks Reserve (Appendix~\ref{app:diag}). In this sample size goes with price only in caf\'es without outdoor seating.
+
+\begin{table}[ht]
+\centering
+\caption{A9: regression of the Price Level (CZK) on the seats inside (per 10 seats), outdoor seating and their interaction, with the slope in each group and the $F$-test of the interaction.}
+\label{tab:a9}
+\fittable{tables/A9_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A9_figure.pdf}
+\caption{A9: Price Level (CZK) against seats inside for caf\'es with ($n=123$) and without ($n=61$) outdoor seating, with one fitted line and 95\% confidence band per group.}
+\label{fig:a9}
+\end{figure}
+
+\FloatBarrier
+\subsection{A10: Does the chance of an above-median Price Level change with size?}
+The outcome is 1 if a caf\'e's Price Level is above the median of 79.67~CZK and 0 otherwise. \Ho: the probability does not change with the seats inside. \Hone: it changes (two-tailed). For 186 caf\'es (3 lost, 91 above the median), the logistic regression gives an average marginal effect of 2.61 percentage points per 10 seats, \CI{$-$0.38}{5.60}, $z=1.71$, \pval{.087}; as a check, the odds ratio per 10 seats is 1.11, \CI{0.98}{1.26} (Table~\ref{tab:a10}, Figure~\ref{fig:a10}). There is no evidence that bigger caf\'es are more likely to be in the more expensive half.
+
+\begin{table}[ht]
+\centering
+\caption{A10: logistic regression of an above-median Price Level on the seats inside. AME = average marginal effect of 10 more seats, in percentage points (pp); the odds ratio, also per 10 seats, is a check. Events = caf\'es above the median.}
+\label{tab:a10}
+\fittable{tables/A10_table.tex}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[0.7]{figures/A10_figure.pdf}
+\caption{A10: predicted probability of an above-median Price Level by seats inside, with its 95\% confidence band; dots are the 186 caf\'es (1 = above the median, 0 = not).}
+\label{fig:a10}
+\end{figure}
+
+\FloatBarrier
 \section{Discussion}
-HINT: what the results together say about your outcome, which results are exploratory, and what a reader should and should not conclude. Discuss at least these limits: a convenience sample collected by students, observational data, and prices of caf\'es in the same district that are not independent of one another. Write ``in this sample'' unless you can defend a wider claim.
+Together, the results describe Prague caf\'es as mostly small places: around 28 seats inside on average, 22 for the median caf\'e, and far fewer outside. Outdoor seating depends on location, with Prague~5 standing out for having almost none among the caf\'es visited. Size matters most for ratings: small caf\'es are top-rated much more often. Size matters little for prices: the link is weak (A6, A7), loses its significance once the distance from the Orloj is included (A8), exists only in caf\'es without outdoor seating (A9), and does not change the chance of being in the more expensive half (A10). All ten analyses were planned before looking at the data; none is exploratory.
+
+These conclusions hold in this sample and have three limits. First, the sample is a convenience sample: students chose caf\'es they could reach, so some districts (for example Prague~1 and Prague~8) are covered much better than others, and the results are not a random sample of Prague caf\'es. Second, the data are observational, so none of the links shows a cause: for example, small caf\'es may be rated higher because of the kind of caf\'e they are, not because of their size. Third, caf\'es in the same district are not independent of one another, because they share rents, tourists and competition. All the tests assume independence, so their $p$-values may be somewhat too small and their intervals too narrow. The regressions are also influenced by a few very big caf\'es; A7 shows that the direction of the result does not depend on them.
+
+\FloatBarrier
+\section{Conclusion}
+How big are Prague caf\'es, and does their size matter? In this sample a caf\'e has around 28 seats inside and 17 more inside than outside, and outdoor seating is rarer in Prague~5. Small caf\'es are rated higher: they are top-rated 28.6 percentage points more often than other caf\'es. Bigger caf\'es are barely more expensive, and that weak link disappears once location is taken into account. Size says more about how a caf\'e is rated than about what it charges.
 
 \appendix
 
+\FloatBarrier
 \section{Descriptive statistics}\label{app:desc}
-HINT: the full description of every variable used (the output of your descriptive script): $n$, number missing, mean with 95\% confidence interval, standard deviation, median, interquartile range and range, and counts and percentages for categorical variables.
+Table~\ref{tab:counts} gives the counts and percentages of the categorical variables, and Table~\ref{tab:desc} the statistics of every numeric variable and every compared group, as produced by \texttt{02\_descriptive.R}.
 
 \begin{table}[ht]
 \centering
-\caption{Descriptive statistics of the variables used. Means are shown with 95\% confidence intervals.}
-\label{tab:desc}
-\inputtable{tables/descriptives.tex}
+\caption{Categorical variables: counts and percentages of all 189 caf\'es.}
+\label{tab:counts}
+\fittable{tables/D_counts.tex}
 \end{table}
 
+\begin{table}[ht]
+\centering
+\caption{Numeric variables, overall and within the compared groups: number of caf\'es, missing values, mean, standard deviation, median, interquartile range and range. Seats in number of seats, Price Level in CZK, distance in km.}
+\label{tab:desc}
+\fittable{tables/D_stats.tex}
+\end{table}
+
+\FloatBarrier
 \section{Distributions and normality}\label{app:dist}
-HINT: what the plots and checks of your descriptive script showed for the variables you test: skewness, outliers, the shape within each group, and the result of the normality check. State which test you treat as primary for each question as a consequence.
+Figures~\ref{fig:dhist} to~\ref{fig:dboot} show the histograms, boxplots and Q--Q plots of every variable and group, and the distribution of the bootstrapped means. Table~\ref{tab:dtable} gives the resulting decision. All seat counts are strongly right-skewed (skewness 0.71 to 4.52) because of a few very big caf\'es, and the Price Level and the distance are moderately skewed. None is normal on its own. The bootstrapped means are close to symmetric for every group with at least 30 caf\'es, so the central limit theorem applies there and the parametric method is used for A1, A2, A3 and A6. Prague~2, 3 and 5 have fewer than 30 caf\'es, so A4 uses the non-parametric Kruskal--Wallis test.
+
+\begin{table}[ht]
+\centering
+\caption{Decision table: for every variable and compared group, the number of caf\'es, the skewness, the skewness of 5{,}000 bootstrapped means (Boot.\ skewness, seed 123), whether the variable is normal ($|$skewness$|<0.5$), whether the central limit theorem applies (CLT: at least 30 caf\'es and $|$boot.\ skewness$|<0.5$), and the resulting method.}
+\label{tab:dtable}
+\fittable{tables/D_table.tex}
+\end{table}
 
 \begin{figure}[ht]
 \centering
-\inputfigure{figures/distributions.pdf}
-\caption{Self-contained caption: the variables shown, the plot type (histogram, density, boxplot, Q--Q plot), and the sample sizes.}
-\label{fig:dist}
+\inputfigure[1]{figures/D_histograms.pdf}
+\caption{Histograms of every variable and compared group (number of caf\'es on the vertical axis; seats, CZK or km on the horizontal axis).}
+\label{fig:dhist}
 \end{figure}
 
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/D_boxplots.pdf}
+\caption{Boxplots of every variable and compared group: the median (line), the middle 50\% (box) and outliers (dots).}
+\label{fig:dbox}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/D_qq.pdf}
+\caption{Normal Q--Q plots of every variable and compared group. Points on the line mean normal data; points curving away at the ends mean skew.}
+\label{fig:dqq}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/D_bootstrap.pdf}
+\caption{Distribution of 5{,}000 bootstrapped means (seed 123) of every variable and compared group. A symmetric bell shape means the central limit theorem applies.}
+\label{fig:dboot}
+\end{figure}
+
+\FloatBarrier
 \section{Regression diagnostics}\label{app:diag}
-HINT: residual plots, Q--Q plots of the residuals, leverage and influential observations, variance inflation factors, and whether the conclusion survives without the influential observations.
+Figures~\ref{fig:diag7} to~\ref{fig:diag9} show, for A7, A8 and A9, the residuals against the fitted values (linearity and equal variance), the normal Q--Q plot of the residuals, and the residuals against the leverage with Cook's distance (influential caf\'es). The residuals form a band without a clear funnel, which agrees with the Breusch--Pagan tests ($p=.186$, $.152$ and $.843$), and they are somewhat right-skewed with a few very expensive caf\'es. The most influential caf\'es are VNITROBLOCK (Cook's distance 0.50 in A7), Kav\'arna Creperi\'e (8.1~km from the Orloj, 0.28 in A8) and Caf\'e Slavia (0.31 in A9); none reaches 1. In A7, 11 caf\'es have a Cook's distance above $4/n$; refitting without them changes the slope from 0.66 to 1.92~CZK per 10 seats, so the direction of the result does not depend on them. In A8 the variance inflation factor is 1.01, so seats and distance do not overlap.
 
-\section{Alternative tests and robustness}\label{app:robust}
-HINT: the second method named for each question (parametric or rank-based), alternative specifications, bootstrap results, the full post hoc tables, and anything else that checks the main result.
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/A7_diagnostics.pdf}
+\caption{A7 diagnostics: residuals vs fitted values, normal Q--Q plot of the residuals, and residuals vs leverage with Cook's distance ($n=186$).}
+\label{fig:diag7}
+\end{figure}
 
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/A8_diagnostics.pdf}
+\caption{A8 diagnostics: residuals vs fitted values, normal Q--Q plot of the residuals, and residuals vs leverage with Cook's distance ($n=186$).}
+\label{fig:diag8}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\inputfigure[1]{figures/A9_diagnostics.pdf}
+\caption{A9 diagnostics: residuals vs fitted values, normal Q--Q plot of the residuals, and residuals vs leverage with Cook's distance ($n=184$).}
+\label{fig:diag9}
+\end{figure}
+
+\FloatBarrier
+\section{Other assumption checks and post hoc tests}\label{app:checks}
+\begin{itemize}
+  \item A2: Levene's test, $F(1,184)=0.17$, \pval{.680}: the variances of the two groups do not differ. Welch's test was used, which is valid either way.
+  \item A4: the full post hoc comparisons are in Table~\ref{tab:a4posthoc}.
+  \item A5: the smallest expected count is 19.29, so the chi-square test is valid and Fisher's exact test was not needed.
+  \item A7--A9: the Breusch--Pagan tests ($p=.186$, $.152$, $.843$) found no unequal variance, so classic standard errors are reported.
+  \item Independence: caf\'es in the same district are not independent, which every test assumes (see the Discussion).
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\caption{A4 post hoc: Dunn's test for every pair of districts with Holm-adjusted $p$-values, and the difference in medians (second district minus first, seats) with a bootstrapped 95\% confidence interval (5{,}000 resamples, seed 123; not adjusted).}
+\label{tab:a4posthoc}
+\fittable{tables/A4_posthoc.tex}
+\end{table}
+
+\FloatBarrier
 \section{Reproducibility}\label{app:repro}
-HINT: the repository link and the names of your three scripts (cleaning, descriptives, tests), the R version, the packages used, and the seed for all bootstrap procedures.
+{\sloppy All materials are in the repository \url{https://github.com/sawyer-source/prague-cafe-analysis}. Opening \texttt{prague-cafe-analysis.Rproj} and running the three scripts in order reproduces every number, table and figure of this report from the raw data: \texttt{analysis/01\_cleaning.R} (cleaning, writes \texttt{dataset.csv}), \texttt{analysis/02\_descriptive.R} (description and choice of method) and \texttt{analysis/03\_analysis.R} (analyses A1--A10). The analysis used R 4.3.3 with dplyr 1.1.4, ggplot2 3.4.4, xtable 1.8-4, rstatix 0.7.2, lmtest 0.9-40, sandwich 3.1-0, emmeans 1.10.0 and marginaleffects 0.18.0. Every bootstrap uses 5{,}000 resamples and the seed 123.\par}
 
-%% ---------------------------------------------------------------
-%% HINT for your R script: export a table and a figure like this.
-%%
-%%   library(xtable)
-%%   print(xtable(desc_tab, digits = 2), file = "tables/descriptives.tex",
-%%         floating = FALSE, booktabs = TRUE, include.rownames = FALSE)
-%%
-%%   # or, for regression models:
-%%   library(modelsummary)
-%%   modelsummary(list("Simple" = m1, "Multiple" = m2), vcov = "HC3",
-%%                statistic = "conf.int", output = "tables/A8_table.tex")
-%%
-%%   ggsave("figures/A4_figure.pdf", p, width = 6, height = 4)
-%%
-%%   # one table and one figure per analysis, named by analysis:
-%%   #   tables/A1_table.tex, figures/A1_figure.pdf, ... tables/A10_table.tex, figures/A10_figure.pdf
-%%
-%% Average marginal effects for the logit:
-%%   library(marginaleffects)
-%%   avg_slopes(m_logit)
-%%
-%% ---------------------------------------------------------------
 \end{document}

@@ -259,12 +259,15 @@ print(xtable(counts_table, digits = c(0, 0, 0, 0, 1)),
 
 names(stats_table) <- c("Variable (group)", "n", "Missing", "Mean", "SD",
                         "Median", "IQR", "Min", "Max")
-print(xtable(stats_table, digits = 2),
+print(xtable(stats_table, digits = 2, align = c("l", "P{3.6cm}", rep("r", 8))),
       file = file.path(dir_tab, "D_stats.tex"),
       floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)
 
 names(d_table) <- c("Variable (group)", "Used in", "n", "Skewness",
-                    "Skewness of boot. means", "Normal", "CLT applies", "Conclusion")
-print(xtable(d_table, digits = 2),
+                    "Boot. skewness", "Normal", "CLT", "Conclusion")
+# P{3.6cm}: a 3.6 cm wide first column whose text wraps, so the table fits the
+# page (the P column type is defined at the top of report.tex)
+print(xtable(d_table, digits = 2,
+             align = c("l", "P{3.6cm}", "P{1.6cm}", "r", "r", "r", "l", "l", "l")),
       file = file.path(dir_tab, "D_table.tex"),
       floating = FALSE, booktabs = TRUE, include.rownames = FALSE, comment = FALSE)

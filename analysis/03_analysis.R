@@ -61,9 +61,11 @@ p_text <- function(p) ifelse(p < 0.001, "p < .001", paste0("p = ", fmt_p(p)))
 # coefficients like r without the leading zero: 0.15 -> ".15", -0.21 -> "-.21"
 fmt_r <- function(x) sub("^(-?)0\\.", "\\1.", fmt(x, 2))
 
-# write a data frame as a LaTeX table (the caption is added in report.tex)
-export_table <- function(table, file) {
-  print(xtable(table), file = file.path(dir_tab, file),
+# write a data frame as a LaTeX table (the caption is added in report.tex).
+# align (optional) sets the columns: "l" = left, "r" = right, "P{3cm}" = a
+# 3 cm wide column whose text wraps onto a new line (for long text)
+export_table <- function(table, file, align = NULL) {
+  print(xtable(table, align = align), file = file.path(dir_tab, file),
         floating = FALSE, booktabs = TRUE, include.rownames = FALSE,
         comment = FALSE)   # no timestamp line, so every run gives the same file
 }
@@ -191,11 +193,11 @@ a2_d    <- a2_diff / sqrt((sd(with_seats)^2 + sd(without_seats)^2) / 2)
 a2_table <- data.frame(
   n = paste(length(with_seats), "+", length(without_seats)), Lost = a2_lost,
   `Mean with` = fmt(mean(with_seats)), `Mean without` = fmt(mean(without_seats)),
-  `Difference (with - without)` = fmt(a2_diff),
-  `95% CI (two-sided)` = fmt_ci(a2_ci[1], a2_ci[2]),
-  `Cohen's d` = fmt(a2_d),
+  Difference = fmt(a2_diff),                         # with - without
+  `95% CI` = fmt_ci(a2_ci[1], a2_ci[2]),               # two-sided
+  d = fmt(a2_d),
   t = paste0("t(", fmt(a2_test$parameter), ") = ", fmt(a2_test$statistic)),
-  `p (one-tailed)` = fmt_p(a2_test$p.value),
+  p = fmt_p(a2_test$p.value),                          # one-tailed
   check.names = FALSE)
 a2_table
 export_table(a2_table, "A2_table.tex")
@@ -217,7 +219,7 @@ a2_plot <- ggplot(a2, aes(x = outdoor, y = seats_inside)) +
 a2_plot
 ggsave(file.path(dir_fig, "A2_figure.pdf"), a2_plot, width = 6, height = 4)
 
-add_summary("A2 Seats inside: with vs without outdoor seating", "Welch t-test (one-tailed)",
+add_summary("A2 Seats inside: outdoor vs none", "Welch t-test (one-tailed)",
             paste(fmt(a2_diff), "seats", fmt_ci(a2_ci[1], a2_ci[2])),
             paste("d =", fmt(a2_d)),
             paste0("t(", fmt(a2_test$parameter), ") = ", fmt(a2_test$statistic)),
@@ -246,11 +248,11 @@ a3_dz <- mean(a3$difference) / sd(a3$difference)
 a3_table <- data.frame(
   n = nrow(a3), Lost = a3_lost,
   `Mean inside` = fmt(mean(a3$seats_inside)), `Mean outside` = fmt(mean(a3$seats_outside)),
-  `Mean difference (inside - outside)` = fmt(mean(a3$difference)),
-  `95% CI (two-sided)` = fmt_ci(a3_ci[1], a3_ci[2]),
+  Difference = fmt(mean(a3$difference)),             # inside - outside
+  `95% CI` = fmt_ci(a3_ci[1], a3_ci[2]),               # two-sided
   `d_z` = fmt(a3_dz),
   t = paste0("t(", a3_test$parameter, ") = ", fmt(a3_test$statistic)),
-  `p (one-tailed)` = fmt_p(a3_test$p.value),
+  p = fmt_p(a3_test$p.value),                          # one-tailed
   check.names = FALSE)
 a3_table
 export_table(a3_table, "A3_table.tex")
@@ -267,7 +269,7 @@ a3_plot <- ggplot(a3, aes(x = "", y = difference)) +
 a3_plot
 ggsave(file.path(dir_fig, "A3_figure.pdf"), a3_plot, width = 6, height = 4)
 
-add_summary("A3 Seats inside - outside (paired)", "Paired t-test (one-tailed)",
+add_summary("A3 Seats inside - outside", "Paired t-test (one-tailed)",
             paste(fmt(mean(a3$difference)), "seats", fmt_ci(a3_ci[1], a3_ci[2])),
             paste("d_z =", fmt(a3_dz)),
             paste0("t(", a3_test$parameter, ") = ", fmt(a3_test$statistic)),
@@ -286,6 +288,7 @@ a4_districts <- paste("Prague", c(1, 2, 3, 5, 7, 8))
 a4_all <- filter(df, district %in% a4_districts)          # the cafes in these districts
 a4 <- filter(a4_all, !is.na(seats_outside))
 a4_lost <- nrow(a4_all) - nrow(a4)                         # lost to missing values
+c(n = nrow(a4), lost = a4_lost)
 a4$district <- factor(a4$district, levels = a4_districts)
 table(a4$district)
 
@@ -359,8 +362,8 @@ ggsave(file.path(dir_fig, "A4_figure.pdf"), a4_plot, width = 7, height = 4)
 # for the summary table: the pair with the smallest Holm-adjusted p-value
 a4_best <- which.min(a4_dunn$p.adj)
 add_summary("A4 Seats outside by district", "Kruskal-Wallis + Dunn (Holm)",
-            paste(a4_posthoc$Pair[a4_best], ":", a4_posthoc$`Difference in medians`[a4_best],
-                  "seats", a4_posthoc$`95% CI (bootstrap)`[a4_best]),
+            paste0(a4_posthoc$Pair[a4_best], ": ", a4_posthoc$`Difference in medians`[a4_best],
+                   " seats ", a4_posthoc$`95% CI (bootstrap)`[a4_best]),
             "not required",
             paste0("H(", a4_test$parameter, ") = ", fmt(a4_test$statistic)),
             fmt_p(a4_test$p.value))
@@ -375,6 +378,7 @@ add_summary("A4 Seats outside by district", "Kruskal-Wallis + Dunn (Holm)",
 # direction: SMALL cafes MINUS OTHER cafes, in percentage points
 a5 <- filter(df, !is.na(small_cafe), !is.na(top_rated))
 a5_lost <- nrow(df) - nrow(a5)
+c(n = nrow(a5), lost = a5_lost)
 a5$size   <- factor(a5$small_cafe, levels = c(1, 0), labels = c("Small cafe", "Other cafe"))
 a5$rating <- factor(a5$top_rated,  levels = c(1, 0), labels = c("Top-rated", "Not top-rated"))
 
@@ -411,16 +415,20 @@ a5_table <- data.frame(
   `% top-rated` = fmt(100 * a5_counts[, "Top-rated"] / sizes, 1),
   `Std. residual (top-rated)` = fmt(a5_chi$stdres[, "Top-rated"]),
   check.names = FALSE)
-a5_table <- rbind(a5_table, data.frame(
-  Group = "Difference (small - other)",
-  `Top-rated` = paste(fmt(a5_diff, 1), "pp"),
-  `Not top-rated` = fmt_ci(100 * a5_ci[1], 100 * a5_ci[2], 1),
-  `% top-rated` = paste("V =", fmt_r(a5_v)),
-  `Std. residual (top-rated)` = paste0("chi2(1, N = ", nrow(a5), ") = ", fmt(a5_chi$statistic),
-                                       ", one-tailed ", p_text(a5_test$p.value)),
-  check.names = FALSE))
 a5_table
 export_table(a5_table, "A5_table.tex")
+
+# the test in a second, small table
+a5_result <- data.frame(
+  `Difference (pp)` = fmt(a5_diff, 1),                                   # small - other
+  `95% CI` = fmt_ci(100 * a5_ci[1], 100 * a5_ci[2], 1),                  # two-sided
+  `Cramer's V` = fmt_r(a5_v),
+  `Smallest expected count` = fmt(min(a5_chi$expected)),
+  `Chi-square` = paste0("chi2(1, N = ", nrow(a5), ") = ", fmt(a5_chi$statistic)),
+  p = fmt_p(a5_test$p.value),                                            # one-tailed
+  check.names = FALSE)
+a5_result
+export_table(a5_result, "A5_test.tex")
 
 # figure: the share of top-rated cafes in each group, with its 95% CI
 a5_shares <- data.frame(
@@ -440,7 +448,7 @@ a5_plot <- ggplot(a5_shares, aes(x = size, y = share)) +
 a5_plot
 ggsave(file.path(dir_fig, "A5_figure.pdf"), a5_plot, width = 6, height = 4)
 
-add_summary("A5 Small cafes top-rated?", "Chi-square / test of proportions (one-tailed)",
+add_summary("A5 Small cafes top-rated", "Chi-square (one-tailed)",
             paste(fmt(a5_diff, 1), "pp", fmt_ci(100 * a5_ci[1], 100 * a5_ci[2], 1)),
             paste("V =", fmt_r(a5_v)),
             paste0("chi2(1, N = ", nrow(a5), ") = ", fmt(a5_chi$statistic)),
@@ -481,9 +489,9 @@ a6_plot <- ggplot(a6, aes(x = seats_inside, y = price_level)) +
 a6_plot
 ggsave(file.path(dir_fig, "A6_figure.pdf"), a6_plot, width = 6, height = 4)
 
-add_summary("A6 Price Level and seats inside", "Pearson correlation",
+add_summary("A6 Price Level and seats", "Pearson correlation",
             paste0("r = ", fmt_r(a6_r), " [", fmt_r(a6_test$conf.int[1]), ", ", fmt_r(a6_test$conf.int[2]), "]"),
-            paste("r squared =", fmt_r(a6_r^2)),
+            paste("r2 =", fmt_r(a6_r^2)),
             paste0("t(", a6_test$parameter, ") = ", fmt(a6_test$statistic)),
             fmt_p(a6_test$p.value))
 
@@ -496,6 +504,7 @@ add_summary("A6 Price Level and seats inside", "Pearson correlation",
 # (the same trick as I(wage_eur / 10) in 01_simple-regression.R)
 a7 <- filter(df, !is.na(price_level), !is.na(seats_inside))
 a7_lost <- nrow(df) - nrow(a7)
+c(n = nrow(a7), lost = a7_lost)
 a7$seats_10 <- a7$seats_inside / 10
 
 a7_model <- lm(price_level ~ seats_10, data = a7)
@@ -540,7 +549,7 @@ ggsave(file.path(dir_fig, "A7_figure.pdf"), a7_plot, width = 6, height = 4)
 
 a7_ci <- coefci(a7_model, vcov = a7_vcov)["seats_10", ]
 a7_ct <- coeftest(a7_model, vcov = a7_vcov)["seats_10", ]
-add_summary("A7 Price Level per 10 seats inside", "Simple regression",
+add_summary("A7 Price Level per 10 seats", "Simple regression",
             paste(fmt(a7_ct[1]), "CZK", fmt_ci(a7_ci[1], a7_ci[2])),
             paste("R2 =", fmt(summary(a7_model)$r.squared)),
             paste0("t(", a7_model$df.residual, ") = ", fmt(a7_ct[3])),
@@ -581,7 +590,7 @@ c(A7_slope = unname(coef(a7_model)["seats_10"]), A8_slope = unname(coef(a8_model
 
 a8_table <- rbind(
   regression_rows(a7_model, a7_vcov, "A7 (seats only)", c("Intercept", "Seats inside (per 10)")),
-  regression_rows(a8_model, a8_vcov, "A8 (+ distance)", c("Intercept", "Seats inside (per 10)", "Distance from the Orloj (km)")),
+  regression_rows(a8_model, a8_vcov, "A8 (+ distance)", c("Intercept", "Seats inside (per 10)", "Distance (km)")),
   data.frame(Model = "A8 (+ distance)", Term = "Observations / R squared", Estimate = nrow(a8), SE = "",
              `95% CI` = paste("R2 =", fmt(summary(a8_model)$r.squared)), t = "", p = "",
              check.names = FALSE),
@@ -615,7 +624,7 @@ ggsave(file.path(dir_fig, "A8_figure.pdf"), a8_plot, width = 6, height = 4.5)
 
 a8_ci <- coefci(a8_model, vcov = a8_vcov)["seats_10", ]
 a8_ct <- coeftest(a8_model, vcov = a8_vcov)["seats_10", ]
-add_summary("A8 Price Level per 10 seats, distance held fixed", "Multiple regression",
+add_summary("A8 Same, distance held fixed", "Multiple regression",
             paste(fmt(a8_ct[1]), "CZK", fmt_ci(a8_ci[1], a8_ci[2])),
             paste("R2 =", fmt(summary(a8_model)$r.squared)),
             paste0("t(", a8_model$df.residual, ") = ", fmt(a8_ct[3])),
@@ -628,9 +637,11 @@ add_summary("A8 Price Level per 10 seats, distance held fixed", "Multiple regres
 # H0: same slope in both groups (interaction = 0)   H1: the slopes differ (two-tailed)
 a9 <- filter(df, !is.na(price_level), !is.na(seats_inside), !is.na(has_outdoor))
 a9_lost <- nrow(df) - nrow(a9)
+c(n = nrow(a9), lost = a9_lost)
 a9$seats_10 <- a9$seats_inside / 10
 a9$outdoor  <- factor(a9$has_outdoor, levels = c(0, 1),
                       labels = c("No outdoor seating", "With outdoor seating"))
+table(a9$outdoor)   # cafes in each group
 
 # seats_10 * outdoor = seats_10 + outdoor + seats_10:outdoor
 # the last term (the interaction) is how much the slope changes with outdoor seating
@@ -660,7 +671,7 @@ a9_slopes
 a9_table <- rbind(
   regression_rows(a9_model, a9_vcov, "A9",
                   c("Intercept", "Seats inside (per 10)", "With outdoor seating",
-                    "Seats inside (per 10) x outdoor seating")),
+                    "Seats (per 10) x outdoor")),
   data.frame(Model = "Slope by group",
              Term = paste("Seats (per 10):", a9_slopes$outdoor),
              Estimate = fmt(a9_slopes$seats_10.trend), SE = fmt(a9_slopes$SE),
@@ -670,7 +681,7 @@ a9_table <- rbind(
   data.frame(Model = "A9", Term = "Observations / R squared", Estimate = nrow(a9), SE = "",
              `95% CI` = paste("R2 =", fmt(summary(a9_model)$r.squared)), t = "", p = "",
              check.names = FALSE),
-  data.frame(Model = "Interaction vs no interaction", Term = "F-test", Estimate = "", SE = "",
+  data.frame(Model = "Interaction test", Term = "F-test", Estimate = "", SE = "",
              `95% CI` = paste0("F(", a9_f$Df[2], ", ", a9_f$Res.Df[2], ") = ", fmt(a9_f$F[2])),
              t = "", p = fmt_p(a9_f$`Pr(>F)`[2]),
              check.names = FALSE))
@@ -690,7 +701,7 @@ ggsave(file.path(dir_fig, "A9_figure.pdf"), a9_plot, width = 6, height = 4.5)
 a9_int <- which(rownames(coeftest(a9_model, vcov = a9_vcov)) == "seats_10:outdoorWith outdoor seating")
 a9_ct  <- coeftest(a9_model, vcov = a9_vcov)[a9_int, ]
 a9_ci  <- coefci(a9_model, vcov = a9_vcov)[a9_int, ]
-add_summary("A9 Seats slope: with vs without outdoor seating", "Regression with interaction",
+add_summary("A9 Seats slope by outdoor seating", "Regression with interaction",
             paste(fmt(a9_ct[1]), "CZK", fmt_ci(a9_ci[1], a9_ci[2])),
             paste("R2 =", fmt(summary(a9_model)$r.squared)),
             paste0("F(", a9_f$Df[2], ", ", a9_f$Res.Df[2], ") = ", fmt(a9_f$F[2])),
@@ -723,11 +734,11 @@ c(odds_ratio = unname(a10_or), lower = a10_or_ci[1], upper = a10_or_ci[2])
 
 a10_table <- data.frame(
   n = nrow(a10), Lost = a10_lost, Events = sum(a10$above_median_price),
-  `AME per 10 seats (pp)` = fmt(100 * a10_ame$estimate),
+  `AME (pp)` = fmt(100 * a10_ame$estimate),           # per 10 seats
   `95% CI` = fmt_ci(100 * a10_ame$conf.low, 100 * a10_ame$conf.high),
   z = fmt(a10_ame$statistic),
   p = fmt_p(a10_ame$p.value),
-  `Odds ratio per 10 seats [95% CI]` = paste(fmt(a10_or), fmt_ci(a10_or_ci[1], a10_or_ci[2])),
+  `Odds ratio [95% CI]` = paste(fmt(a10_or), fmt_ci(a10_or_ci[1], a10_or_ci[2])),   # per 10 seats
   check.names = FALSE)
 a10_table
 export_table(a10_table, "A10_table.tex")
@@ -743,7 +754,7 @@ a10_plot <- plot_predictions(a10_model, condition = "seats_inside") +
 a10_plot
 ggsave(file.path(dir_fig, "A10_figure.pdf"), a10_plot, width = 6, height = 4)
 
-add_summary("A10 Chance of above-median Price Level per 10 seats", "Logistic regression (AME)",
+add_summary("A10 Above-median Price Level per 10 seats", "Logistic regression (AME)",
             paste(fmt(100 * a10_ame$estimate), "pp", fmt_ci(100 * a10_ame$conf.low, 100 * a10_ame$conf.high)),
             paste("OR =", fmt(a10_or)),
             paste("z =", fmt(a10_ame$statistic)),
@@ -754,4 +765,5 @@ add_summary("A10 Chance of above-median Price Level per 10 seats", "Logistic reg
 # SUMMARY TABLE OF ALL TEN ANALYSES (for the main text of the report)
 # ============================================================
 summary_rows
-export_table(summary_rows, "summary.tex")
+export_table(summary_rows, "summary.tex",
+             align = c("l", "P{2.6cm}", "P{2.5cm}", "P{3.3cm}", "l", "P{2.3cm}", "l"))
