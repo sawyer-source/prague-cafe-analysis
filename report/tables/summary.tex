@@ -1,0 +1,18 @@
+% latex table generated in R 4.3.3 by xtable 1.8-4 package
+% Sun Nov 22 01:13:56 2026
+\begin{tabular}{llllll}
+  \toprule
+Analysis & Method & Estimate [95\% CI] & Effect size & Test & p \\ 
+  \midrule
+A1 Seats inside vs 30 & One-sample t-test & 27.99 seats [23.78, 32.20] & d = -0.07 & t(187) = -0.94 & .347 \\ 
+  A2 Seats inside: with vs without outdoor seating & Welch t-test (one-tailed) & 7.62 seats [-0.47, 15.72] & d = 0.27 & t(159.48) = 1.86 & .032 \\ 
+  A3 Seats inside - outside (paired) & Paired t-test (one-tailed) & 17.36 seats [13.39, 21.33] & d\_z = 0.63 & t(185) = 8.63 & $<$ .001 \\ 
+  A4 Seats outside by district & Kruskal-Wallis + Dunn (Holm) & Prague 5 - Prague 1 : -8.00 seats [-12.00, -3.00] & not required & H(5) = 12.51 & .028 \\ 
+  A5 Small cafes top-rated? & Chi-square / test of proportions (one-tailed) & 28.6 pp [13.1, 44.1] & V = .27 & chi2(1, N = 186) = 13.12 & $<$ .001 \\ 
+  A6 Price Level and seats inside & Pearson correlation & r = .15 [.01, .29] & r squared = .02 & t(184) = 2.11 & .037 \\ 
+  A7 Price Level per 10 seats inside & Simple regression & 0.66 CZK [0.04, 1.27] & R2 = 0.02 & t(184) = 2.11 & .037 \\ 
+  A8 Price Level per 10 seats, distance held fixed & Multiple regression & 0.58 CZK [-0.03, 1.20] & R2 = 0.05 & t(183) = 1.87 & .063 \\ 
+  A9 Seats slope: with vs without outdoor seating & Regression with interaction & -2.67 CZK [-4.17, -1.18] & R2 = 0.09 & F(1, 180) = 12.44 & $<$ .001 \\ 
+  A10 Chance of above-median Price Level per 10 seats & Logistic regression (AME) & 2.61 pp [-0.38, 5.60] & OR = 1.11 & z = 1.71 & .087 \\ 
+   \bottomrule
+\end{tabular}
