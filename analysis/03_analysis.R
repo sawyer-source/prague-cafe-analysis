@@ -715,7 +715,7 @@ add_summary("A9 Seats slope by outdoor seating", "Regression with interaction",
 # H0: the chance does not change with seats   H1: it changes (two-tailed)
 a10 <- filter(df, !is.na(above_median_price), !is.na(seats_inside))
 a10_lost <- nrow(df) - nrow(a10)
-median(df$price_level, na.rm = TRUE)   # the median used for the cut: 79.67 CZK
+median(df$price_level, na.rm = TRUE)   # the median used for the cut: 79.7 CZK (a price: 1 decimal)
 table(a10$above_median_price)          # events (1) and non-events (0)
 
 # the logit model (05_logit-marginal-effects.R): family = binomial
